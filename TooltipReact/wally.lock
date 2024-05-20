@@ -4,28 +4,13 @@ registry = "test"
 
 [[package]]
 name = "bdidk235/react-tooltip"
-version = "1.0.0"
-dependencies = [["Janitor", "howmanysmall/janitor@1.16.0"], ["React", "jsdotlua/react@17.1.0"], ["ReactRoblox", "jsdotlua/react-roblox@17.1.0"], ["RoactSpring", "chriscerie/react-spring@2.0.0"], ["Sift", "csqrl/sift@0.0.9"]]
-
-[[package]]
-name = "chriscerie/react-spring"
-version = "2.0.0"
-dependencies = [["Promise", "evaera/promise@4.0.0"], ["React", "jsdotlua/react@17.1.0"], ["ReactRoblox", "jsdotlua/react-roblox@17.1.0"], ["TestEZ", "roblox/testez@0.4.1"]]
+version = "1.0.1"
+dependencies = [["React", "jsdotlua/react@17.1.0"], ["ReactRoblox", "jsdotlua/react-roblox@17.1.0"], ["Sift", "csqrl/sift@0.0.9"]]
 
 [[package]]
 name = "csqrl/sift"
 version = "0.0.9"
 dependencies = []
-
-[[package]]
-name = "evaera/promise"
-version = "4.0.0"
-dependencies = []
-
-[[package]]
-name = "howmanysmall/janitor"
-version = "1.16.0"
-dependencies = [["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
 name = "jsdotlua/boolean"
@@ -111,8 +96,3 @@ dependencies = []
 name = "jsdotlua/timers"
 version = "1.2.6"
 dependencies = [["collections", "jsdotlua/collections@1.2.6"]]
-
-[[package]]
-name = "roblox/testez"
-version = "0.4.1"
-dependencies = []

@@ -3,7 +3,6 @@ local UserInputService = game:GetService("UserInputService")
 
 local React = require(script.Parent.React)
 local ReactRoblox = require(script.Parent.ReactRoblox)
-local Janitor = require(script.Parent.Janitor)
 
 local PlayerGuiPortal = require(script.PlayerGuiPortal)
 
@@ -102,7 +101,7 @@ export type Props = {
 }
 
 function TooltipComponent:init()
-	self._janitor = Janitor.new()
+	self._connections = {}
 
 	self.position, self.setPosition = createBinding(UDim2.new(0, 0, 0, 0))
 	self.size, self.setSize = createBinding(UDim2.new(0.35, 0, 0.1, 0))
@@ -139,12 +138,13 @@ function TooltipComponent:didMount()
 		end)
 	end
 
-	self.MouseMoved = self._janitor:Add(frame.MouseMoved:Connect(function()
+	self.MouseMoved = frame.MouseMoved:Connect(function()
 		updateTooltip(self)
-	end))
+	end)
+	table.insert(self._connections, self.MouseMoved)
 
 	-- Input events
-	self.InputBegan = self._janitor:Add(frame.InputBegan:Connect(function(input)
+	self.InputBegan = frame.InputBegan:Connect(function(input)
 		if
 			input.UserInputType == Enum.UserInputType.MouseMovement
 			or input.UserInputType == Enum.UserInputType.Touch
@@ -152,28 +152,35 @@ function TooltipComponent:didMount()
 			self.setHovered(true)
 			updateTooltip(self)
 		end
-	end))
+	end)
+	table.insert(self._connections, self.InputBegan)
 
-	self.InputEnded = self._janitor:Add(frame.InputEnded:Connect(function(input)
+	self.InputEnded = frame.InputEnded:Connect(function(input)
 		if
 			input.UserInputType == Enum.UserInputType.MouseMovement
 			or input.UserInputType == Enum.UserInputType.Touch
 		then
 			self.setHovered(false)
 		end
-	end))
+	end)
+	table.insert(self._connections, self.InputEnded)
 
 	-- Cleaning up
-	self.Destroying = self._janitor:Add(frame.Destroying:Connect(function()
-		self._janitor:Destroy()
+	self.Destroying = frame.Destroying:Connect(function()
+		for _, connection in pairs(self._connections) do
+			connection:Disconnect()
+		end
 		if self.uiRootRoot then self.uiRootRoot:unmount() end
 		table.clear(self :: any)
 		setmetatable(self :: any, nil)
-	end))
+	end)
+	table.insert(self._connections, self.Destroying)
 end
 
 function TooltipComponent:willUnmount()
-	self._janitor:Destroy()
+	for _, connection in pairs(self._connections) do
+		connection:Disconnect()
+	end
 	if self.uiRootRoot then self.uiRootRoot:unmount() end
 end
 

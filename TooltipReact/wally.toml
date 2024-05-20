@@ -1,6 +1,7 @@
 [package]
 name = "bdidk235/react-tooltip"
-version = "1.0.0"
+description = "A react version of bdidk235/tooltip, that is a basic text tooltip that that follows your mouse."
+version = "1.0.1"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 exclude = ["**"]
@@ -11,5 +12,4 @@ include = ["src", "src/**", "default.project.json", "wally.toml"]
 React = "jsdotlua/react@^17"
 ReactRoblox = "jsdotlua/react-roblox@^17"
 
-Sift = "csqrl/sift@0.0.9"
-Janitor = "howmanysmall/janitor@^1.15.0"
+Sift = "csqrl/sift@^0.0"

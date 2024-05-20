@@ -1,2 +1,2 @@
 # React Tooltip
-A recreation of [Tooltip](../Tooltip) for use in React.
+A react version of [Tooltip](../Tooltip).
