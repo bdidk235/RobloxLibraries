@@ -1,0 +1,13 @@
+{
+	"name": "tooltip-serve",
+	"tree": {
+		"$className": "DataModel",
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"$path": "Packages",
+			"ReactTooltip": {
+				"$path": "default.project.json"
+			}
+		}
+	}
+}

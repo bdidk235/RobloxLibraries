@@ -1,0 +1,15 @@
+[package]
+name = "bdidk235/react-tooltip"
+version = "1.0.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+exclude = ["**"]
+include = ["src", "src/**", "default.project.json", "wally.toml"]
+
+[dependencies]
+# jsdotlua React (Roact17)
+React = "jsdotlua/react@^17"
+ReactRoblox = "jsdotlua/react-roblox@^17"
+
+Sift = "csqrl/sift@0.0.9"
+Janitor = "howmanysmall/janitor@^1.15.0"

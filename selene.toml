@@ -3,3 +3,4 @@ exclude = ["Third-Party/**"]
 
 [rules]
 multiple_statements = "allow"
+undefined_variable = "allow" # so it doesn't error on `path.to` 

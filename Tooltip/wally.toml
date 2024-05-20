@@ -1,0 +1,8 @@
+[package]
+name = "bdidk235/tooltip"
+version = "1.0.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+exclude = ["**"]
+include = ["src", "src/**", "default.project.json", "wally.toml"]
+
