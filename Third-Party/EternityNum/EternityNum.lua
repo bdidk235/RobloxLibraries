@@ -164,7 +164,7 @@ local ONE: EN = Cnew(1, 0, 1)
 local NaN: EN = Cnew(1, -1, 1)
 local Inf: EN = Cnew(1, math.huge, 1)
 
-local DefaultReturn = ZERO
+--local DefaultReturn = ZERO
 
 function EN.IsNaN(Value: EN) : boolean
 	return Value.Sign == NaN.Sign and Value.Layer == NaN.Layer and Value.Exp == NaN.Exp 
@@ -294,7 +294,7 @@ function EN.fromDefaultStringFormat(Value: string) : EN --// Convert "X;Y" to Et
 end
 
 
-function EN.fromString(Value: string)
+function EN.fromString(Value: string): EN?
 	if Value:find("e") and not Value:find(";") then -- Assuming its scientific notation
 		return EN.fromScientific(Value)
 	elseif Value:find(";") then -- String representation
@@ -303,9 +303,12 @@ function EN.fromString(Value: string)
 
 	if Value == "NaN" then return NaN end
 	if Value == "Inf" then return Inf end
-	if Value == "" then return DefaultReturn end
+	--if Value == "" then return DefaultReturn end
 
-	return EN.fromNumber(tonumber(Value) or 1)
+	local num = tonumber(Value)
+	if not num then return nil end
+
+	return EN.fromNumber(num)
 end
 
 function EN.toString(Value: EN) : string
@@ -317,7 +320,7 @@ function EN.toString(Value: EN) : string
 	return Value.Layer .. ";" .. Value.Exp * Value.Sign
 end
 
-function EN.convert(Input) : EN --// Convert any valid type to EternityNum
+function EN.convert(Input) : EN? --// Convert any valid type to EternityNum
 	if typeof(Input) == "number" then
 		return EN.fromNumber(Input)
 	elseif typeof(Input) == "string" then
@@ -332,8 +335,9 @@ function EN.convert(Input) : EN --// Convert any valid type to EternityNum
 			return EN.correct(EN.new(Input.Sign, Input.Layer, Input.Exp))
 		end
 	end
-	warn(debug.traceback("Returning DefaultReturn at EN.Convert(): Invalid input!"))
-	return DefaultReturn
+	return nil
+	--warn(debug.traceback("Returning DefaultReturn at EN.Convert(): Invalid input!"))
+	--return DefaultReturn
 end
 
 
