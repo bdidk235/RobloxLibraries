@@ -84,7 +84,7 @@ FUNCTIONS:
 
 -- TO ADD:
 	EN.min(val1, val2)
-	EN.max(val1m val2)
+	EN.max(val1, val2)
 ]]
 
 -----------
