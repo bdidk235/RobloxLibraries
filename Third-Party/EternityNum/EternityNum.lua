@@ -1,7 +1,10 @@
---!nonstrict
 -- Original Asset: https://create.roblox.com/marketplace/asset/12144172446/EternityNum-2
 -- Made by FoundForces - CommanderSalty#2800
 -- Modified by bdidk235
+
+--!nonstrict
+--!optimize 2
+--!native
 
 --// Config
 local expl = 1e10 -- exponent limit
