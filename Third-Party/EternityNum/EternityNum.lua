@@ -252,6 +252,7 @@ end
 function EN.fromDefaultStringFormat(Value: string): EN --// Convert "X;Y" to EtNum
 	local slice = Value:split(";")
 	local Sign = math.sign(tonumber(slice[1]) or 1)
+	if Sign == 0 then Sign = 1 end
 	local Layers = math.abs(tonumber(slice[1]) or 1)
 	local Exp = tonumber(slice[2])
 	return EN.new(Sign, Layers, Exp)
