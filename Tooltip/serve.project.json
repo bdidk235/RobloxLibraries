@@ -2,9 +2,9 @@
 	"name": "tooltip-serve",
 	"tree": {
 		"$className": "DataModel",
-		"ServerScriptService": {
-			"$className": "ServerScriptService",
-			"Tooltip": {
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"tooltip": {
 				"$path": "default.project.json"
 			}
 		}

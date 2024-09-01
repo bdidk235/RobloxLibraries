@@ -1,5 +1,8 @@
 local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer :: Player?
 
 local HoveringModule = require(script.HoveringModule)
 
@@ -9,19 +12,17 @@ type Impl = {
 		object: GuiObject,
 		text: string,
 		font: (Font | Enum.Font)?,
-		fontSize: (number | Enum.FontSize)?,
-		player: Player?
+		fontSize: (number | Enum.FontSize)?
 	) -> Tooltip,
 	Show: (self: Tooltip) -> Tooltip,
 	Hide: (self: Tooltip) -> Tooltip,
 	SetText: (self: Tooltip, text: string) -> Tooltip,
 	Disconnect: (self: Tooltip) -> (),
 	Destroy: (self: Tooltip) -> (),
-	_CreateGui: (player: { PlayerGui: PlayerGui }) -> ScreenGui,
+	_CreateGui: (guiTarget: GuiTarget?) -> ScreenGui,
 }
 
 type Proto = {
-	Player: Player,
 	Object: GuiObject,
 	Text: string,
 	Font: (Font | Enum.Font)?,
@@ -40,7 +41,7 @@ Tooltip.__index = Tooltip
 
 export type Tooltip = typeof(setmetatable({} :: Proto, {} :: Impl))
 
-function GetTextSize(text: string, textSize: number, font: Font | Enum.Font, frameSize: Vector2, richText: boolean?)
+function getTextSize(text: string, textSize: number, font: Font | Enum.Font, frameSize: Vector2, richText: boolean?)
 	local textLabel = Instance.new("TextLabel")
 	textLabel.Text = text
 	textLabel.TextSize = textSize
@@ -53,29 +54,57 @@ function GetTextSize(text: string, textSize: number, font: Font | Enum.Font, fra
 	textLabel.Size = UDim2.new(0, frameSize.X, 0, frameSize.Y)
 	textLabel.TextWrapped = true
 	textLabel.RichText = richText or false
-	textLabel.Parent = Players.LocalPlayer.PlayerGui
+	textLabel.Parent = if LocalPlayer then LocalPlayer:FindFirstChildWhichIsA("PlayerGui") else CoreGui
 	local textBounds = textLabel.TextBounds
 	textLabel:Destroy()
 
 	return textBounds
 end
 
-function Tooltip.new(
-	object: GuiObject,
-	text: string,
-	font: (Font | Enum.Font)?,
-	fontSize: (number | Enum.FontSize)?,
-	player: Player?
-)
+type GuiTarget = {
+	target: Instance,
+	needsScreenGui: boolean,
+}
+
+local function getGuiTarget(reference: Instance?): GuiTarget
+	if LocalPlayer == nil or LocalPlayer:FindFirstChildWhichIsA("PlayerGui") == nil then
+		local hoarcekat = reference
+			and (
+				reference:FindFirstAncestor("Hoarcekat")
+				or reference:FindFirstAncestor("flipbook")
+				or reference:FindFirstAncestor("UILabs")
+			)
+		if hoarcekat == nil then
+			return {
+				target = CoreGui,
+				needsScreenGui = true,
+			}
+		else
+			return {
+				target = hoarcekat,
+				needsScreenGui = false,
+			}
+		end
+	else
+		return {
+			target = LocalPlayer.PlayerGui,
+			needsScreenGui = true,
+		}
+	end
+end
+
+function Tooltip.new(object: GuiObject, text: string, font: (Font | Enum.Font)?, fontSize: (number | Enum.FontSize)?)
 	local self = setmetatable({} :: Proto, Tooltip)
 	local hovering = HoveringModule.new(object)
 
-	self.Player = player or Players.LocalPlayer
 	self.Object = object
 	self.Text = text
 	self.Font = font or Enum.Font.GothamMedium
 	self.FontSize = fontSize or 14
-	self.Gui = Tooltip._CreateGui(player or Players.LocalPlayer)
+
+	local guiTarget = getGuiTarget(object)
+
+	self.Gui = Tooltip._CreateGui(guiTarget)
 
 	self._Hovering = hovering
 	self._MoveConnection = object.MouseMoved:Connect(function()
@@ -93,39 +122,27 @@ function Tooltip:Show()
 	local selectedObject = self.Gui:FindFirstChildOfClass("ObjectValue")
 	assert(tooltip and tooltip:IsA("TextLabel"), "No Tooltip found!")
 
-	tooltip.Text = self.Text
-	tooltip.Font = self.Font
-	tooltip.TextSize = self.FontSize
-
 	local mouse = UserInputService:GetMouseLocation()
 	local viewportSize = workspace.CurrentCamera.ViewportSize
 
-	local textBounds = GetTextSize(
-		self.Text,
-		tooltip.TextSize,
-		tooltip.Font,
-		Vector2.new(viewportSize.X / 2, viewportSize.Y / 2),
-		true
-	)
+	local textBounds =
+		getTextSize(self.Text, self.FontSize, self.Font, Vector2.new(viewportSize.X / 3, viewportSize.Y / 3), true)
 
 	local xOffset = 15
 	local yOffset = 18
 
-	if mouse.X > viewportSize.X * 0.95 - textBounds.X + 10 then
-		xOffset = -tooltip.TextBounds.X - 15
-	end
+	if mouse.X > viewportSize.X * 0.95 - textBounds.X + 10 then xOffset = -textBounds.X - 15 end
+	if mouse.Y > viewportSize.Y * 0.95 - textBounds.Y - 70 then yOffset = -textBounds.Y - 18 end
 
-	if mouse.Y > viewportSize.Y * 0.95 - textBounds.Y - 70 then
-		yOffset = -tooltip.TextBounds.Y - 18
-	end
+	tooltip.Text = self.Text
+	tooltip.Font = self.Font
+	tooltip.TextSize = self.FontSize
 
-	tooltip.Size = UDim2.new(0.35, 0, 0.1, 0)
 	tooltip.Position = UDim2.new(mouse.X / viewportSize.X, xOffset, mouse.Y / viewportSize.Y, yOffset)
 	tooltip.Size = UDim2.new(0, textBounds.X + 10, 0, textBounds.Y + 10)
+
 	tooltip.Visible = true
-	if selectedObject and typeof(self.Object) == "Instance" then
-		selectedObject.Value = self.Object
-	end
+	if selectedObject and typeof(self.Object) == "Instance" then selectedObject.Value = self.Object end
 	return self
 end
 
@@ -136,9 +153,7 @@ function Tooltip:Hide()
 
 	if not selectedObject or selectedObject.Value == self.Object then
 		tooltip.Visible = false
-		if selectedObject then
-			selectedObject.Value = nil
-		end
+		if selectedObject then selectedObject.Value = nil end
 	end
 	return self
 end
@@ -149,26 +164,20 @@ function Tooltip:SetText(text: string)
 	assert(tooltip and tooltip:IsA("TextLabel"), "No Tooltip found!")
 
 	self.Text = text
-	if selectedObject and self.Object == selectedObject.Value then
-		self:Show()
-	end
+	if selectedObject and self.Object == selectedObject.Value then self:Show() end
 	return self
 end
 
 function Tooltip:Disconnect(): ()
-	if self._MoveConnection then
-		self._MoveConnection:Disconnect()
-	end
-	if self._LeaveConnection then
-		self._LeaveConnection:Disconnect()
-	end
+	if self._MoveConnection then self._MoveConnection:Disconnect() end
+	if self._LeaveConnection then self._LeaveConnection:Disconnect() end
 	table.clear(self :: any)
 end
 Tooltip.Destroy = Tooltip.Disconnect
 
-function Tooltip._CreateGui(player: { PlayerGui: PlayerGui }): ScreenGui
-	local playerGui = player.PlayerGui
-	local oldGui = playerGui:FindFirstChild("TooltipGui")
+function Tooltip._CreateGui(guiTarget: GuiTarget?): ScreenGui
+	local guiParent = guiTarget and guiTarget.target or LocalPlayer.PlayerGui
+	local oldGui = guiParent:FindFirstChild("TooltipGui")
 	if oldGui and oldGui:IsA("ScreenGui") then
 		return oldGui
 	elseif oldGui then
@@ -205,7 +214,7 @@ function Tooltip._CreateGui(player: { PlayerGui: PlayerGui }): ScreenGui
 	uiCorner.Parent = tooltip
 	tooltip.Parent = gui
 	selectedObject.Parent = gui
-	gui.Parent = playerGui
+	gui.Parent = guiParent
 
 	return gui
 end

@@ -4,7 +4,7 @@ registry = "test"
 
 [[package]]
 name = "bdidk235/react-tooltip"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [["React", "jsdotlua/react@17.1.0"], ["ReactRoblox", "jsdotlua/react-roblox@17.1.0"], ["Sift", "csqrl/sift@0.0.9"]]
 
 [[package]]

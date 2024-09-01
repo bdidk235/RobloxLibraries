@@ -1,0 +1,27 @@
+{
+	"name": "roblox-libraries",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Third-Party": {
+				"$path": "Third-Party"
+			},
+			"Packages": {
+				"$className": "Folder",
+				"Tooltip": {
+					"$className": "Folder",
+					"tooltip": {
+						"$path": "Tooltip/default.project.json"
+					}
+				},
+				"ReactTooltip": {
+					"$path": "TooltipReact/Packages",
+					"react-tooltip": {
+						"$path": "TooltipReact/default.project.json"
+					}
+				}
+			}
+		}
+	}
+}

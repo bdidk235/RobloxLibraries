@@ -15,7 +15,6 @@ export type CmdrArgumentContext = {
 }
 
 export type CmdrCommandContext = {
-	Cmdr: Cmdr,
 	Dispatcher: CmdrDispatcher,
 	Name: string,
 	Alias: string,
@@ -36,6 +35,14 @@ export type CmdrCommandContext = {
 	BroadcastEvent: (self: CmdrCommandContext, Evnet: string, ...any) -> (),
 	Reply: (self: CmdrCommandContext, Text: string, Color: Color3?) -> (),
 	HasImplementation: (self: CmdrCommandContext) -> boolean,
+}
+
+export type CmdrServerCommandContext = CmdrCommandContext & {
+	Cmdr: Cmdr,
+}
+
+export type CmdrClientCommandContext = CmdrCommandContext & {
+	Cmdr: CmdrClient,
 }
 
 export type CmdrTypeDefinition<T> = {
@@ -63,9 +70,9 @@ export type CmdrCommandDefinition = {
 	Aliases: { string },
 	Description: string,
 	Group: string?,
-	Args: { CmdrCommandArgument | (Context: CmdrCommandContext) -> CmdrCommandArgument },
-	Data: ((Context: CmdrCommandContext, ...any) -> any)?,
-	ClientRun: ((Context: CmdrCommandContext, ...any) -> any)?,
+	Args: { CmdrCommandArgument | (Context: CmdrClientCommandContext) -> CmdrCommandArgument },
+	Data: ((Context: CmdrClientCommandContext, ...any) -> any)?,
+	ClientRun: ((Context: CmdrClientCommandContext, ...any) -> any)?,
 	AutoExec: { string }?,
 }
 
@@ -96,7 +103,7 @@ export type CmdrRegistry = {
 	RegisterHook: (
 		self: CmdrRegistry,
 		HookName: "BeforeRun" | "AfterRun",
-		Callback: (Context: CmdrCommandContext) -> string?,
+		Callback: (Context: CmdrServerCommandContext) -> string?,
 		Priority: number?
 	) -> (),
 	GetStore: (self: CmdrRegistry, Name: string) -> { [any]: any },
