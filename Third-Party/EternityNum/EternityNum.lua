@@ -427,7 +427,7 @@ function EN.log(Value, Base): EN --// Log of x
 	if Value.Sign <= 0 then return NaN end
 
 	if Value.Layer == 0 then
-		return EN.new(Value.Sign, 0, math.log10(Value.Exp))
+		return EN.new(Value.Sign, 0, math.log(Value.Exp))
 	elseif Value.Layer == 1 then
 		--// so we have this for x*10^y, since log(x) = log10(x) * log(10) we can do exactly that!
 		return EN.new(math.sign(Value.Exp), 0, math.abs(Value.Exp) * 2.302585092994046)
