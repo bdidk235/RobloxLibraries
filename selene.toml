@@ -1,5 +1,5 @@
 std = "roblox"
-exclude = ["Third-Party/**"]
+exclude = ["Third-Party/**.original*"]
 
 [rules]
 multiple_statements = "allow"

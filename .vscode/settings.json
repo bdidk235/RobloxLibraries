@@ -2,9 +2,7 @@
 	"editor.insertSpaces": false,
 	"editor.formatOnSave": true,
 	"files.eol": "\n",
-	"luau-lsp.ignoreGlobs": [
-		"**/_Index/**",
-	],
+	"luau-lsp.ignoreGlobs": ["**/_Index/**", "Third-Party/**.original*"],
 	"luau-lsp.diagnostics.strictDatamodelTypes": true,
 	"luau-lsp.diagnostics.workspace": true,
 	"luau-lsp.fflags.enableByDefault": true,

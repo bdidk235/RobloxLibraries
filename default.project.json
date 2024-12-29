@@ -7,18 +7,18 @@
 			"Third-Party": {
 				"$path": "Third-Party"
 			},
-			"Packages": {
+			"Libraries": {
 				"$className": "Folder",
 				"Tooltip": {
 					"$className": "Folder",
 					"tooltip": {
-						"$path": "Tooltip/default.project.json"
+						"$path": "Tooltip"
 					}
 				},
 				"ReactTooltip": {
 					"$path": "TooltipReact/Packages",
 					"react-tooltip": {
-						"$path": "TooltipReact/default.project.json"
+						"$path": "TooltipReact"
 					}
 				}
 			}

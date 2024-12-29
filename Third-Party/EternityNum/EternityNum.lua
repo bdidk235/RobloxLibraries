@@ -2,11 +2,10 @@
 -- Made by FoundForces - CommanderSalty#2800
 -- Modified by bdidk235
 
---!nonstrict
 --!optimize 2
 --!native
 
---// Config
+--# Config
 local expl = 1e10 -- exponent limit
 local ldown = math.log10(expl) -- val for layer down
 local msd = 100 -- max sig digits
@@ -17,30 +16,30 @@ local DefaultDigits = 2 -- Amount of digits on short functions (-1 is all digits
 
 --[[
 EN: A valid EternityNum Table
-val: Any valid input that can be converted to an EternityNum Table
+val: Any valid input that can be converted to a EternityNum Table
 
 FUNCTIONS:
---// CHECK
+--# CHECK
 	EN.IsNan(EN): boolean -> returns if the given value is NAN or not
 	EN.IsInf(EN): boolean -> returns if the given value is INF or not
 	EN.IsZero(EN): boolean -> returns if the given value is 0 or not
 
---// CONVERT
-	EN.new(Sign, Layer, Exp): EN -> Directy create a new EternityNum Table :->: Sign * (10^^Layer)^Exp
+--# CONVERT
+	EN.new(Sign, Layer, Exp): EN -> Directy create an new EternityNum Table :->: Sign * (10^^Layer)^Exp
 	EN.fromNumber(number): EN -> Converts a number into an EternityNum Table
 	EN.fromString(string): EN -> Converts a string into an EternityNum Table
 	EN.fromScientific(string): EN -> Converts "XeY" into an EternityNum Table
 	EN.fromDefaultStringFormat(string): EN -> Converts "X;Y" into an EternityNum Table
 	EN.convert(val): EN -> Converts any valid input to an EternityNum Table
 
-	EN.toNumber(EN): number -> Converts a EternityNum Table to an number
-	EN.toString(EN): string -> Converts a EternityNum Table to an string ("X;Y")
-	EN.toScientific(val): string -> Converts a value to an string ("XeY")
-	EN.toLayerNotation(val, digits): string -> Converts a value to an string ("E(x)y")
-	EN.toSuffix(val): string -> Converts a value to an suffix
-	EN.short(val, digits): string -> Converts a value to an displayable string
+	EN.toNumber(EN): number -> Converts an EternityNum Table to a number
+	EN.toString(EN): string -> Converts an EternityNum Table to a string ("X;Y")
+	EN.toScientific(val): string -> Converts a value to a string ("XeY")
+	EN.toLayerNotation(val, digits): string -> Converts a value to a string ("E(x)y")
+	EN.toSuffix(val): string -> Converts a value to a suffix
+	EN.short(val, digits): string -> Converts a value to a displayable string
 
---// BOOLEAN
+--# BOOLEAN
 	EN.eq(val1, val2): bool -> returns if val1 equals val2 (==)
 	EN.le(val1, val2): bool -> returns if val1 is less then val2 (<)
 	EN.me(val1, val2): bool -> returns if val1 is more then val2 (>)
@@ -48,7 +47,7 @@ FUNCTIONS:
 	EN.meeq(val1, val2): bool -> returns if val1 is more or equal then val2 (>=)
 	EN.bewteen(val, min, max): bool -> returns if val is between min and max
 
---// S CALCS
+--# S CALCS
 	EN.abs(val): EN -> returns the absolute value of val
 	EN.neg(val): EN -> returns the negated value of val (-val)
 	EN.recip(val): EN -> returns the reciprocal of val (1/val)
@@ -59,13 +58,13 @@ FUNCTIONS:
     EN.sqrt(val): EN -> returns the square root of val
     EN.gamma(val): EN -> returns (val - 1)!
     EN.fact(val): EN -> returns val!
-    EN.correct(EN): EN -> error corrects an eternitynum (INTERNAL ONLY)
+    EN.correct(EN): EN -> error corrects an EternityNum Table (INTERNAL ONLY)
 
-    --// USE FOR LEADERBOARDS
+    --# USE FOR LEADERBOARDS
     EN.lbencode(val): number -> returns a number that can be stored in ordereddatastore
-    EN.lbdecode(number): EN -> converts a lbecoded number back to an EternityNum Table
+    EN.lbdecode(number): EN -> converts a lbencoded number back to an EternityNum Table
 
---// BIN CALCS
+--# BIN CALCS
 	EN.add(val1, val2): EN -> returns val1 + val2
 	EN.sub(val1, val2): EN -> returns val1 - val2
 	EN.mul(val1, val2): EN -> returns val1 * val2
@@ -82,12 +81,15 @@ FUNCTIONS:
 	EN.cmpAbs(EN1, EN2): number -> returns cmp(abs(EN1),abs(EN2))
 	EN.maxAbs(val1, val2): EN -> returns the max(abs(val1), abs(val2))
 
--- TO ADD:
-	EN.min(val1, val2)
-	EN.max(val1, val2)
+-- ADDED BY bdidk235:
+	EN.floor(val): EN -> returns the floor of val (when val.Layer == 0)
+	EN.round(val): EN -> returns the round of val (when val.Layer == 0)
+	EN.ceil(val): EN -> returns the ceil of val (when val.Layer == 0)
+	EN.min(val1, ...): EN -> returns the min of val1 and all the other values
+	EN.max(val1, ...): EN -> returns the max of val1 and all the other values
+	EN.clamp(val, min, max): EN -> returns the clamped value between min and max
 ]]
 
------------
 local C = {
 	0.99999999999980993,
 	676.5203681218851,
@@ -101,7 +103,7 @@ local C = {
 }
 
 function F_Gamma(n): number -- (x-1)!
-	if n > 171.6236 then return 1.8e308 end --// Point where Gamma(x) will return INF
+	if n > 171.6236 then return 1.8e308 end --# Point where Gamma(x) will return INF
 
 	if n > 0.5 then
 		n -= 1
@@ -117,23 +119,25 @@ function F_Gamma(n): number -- (x-1)!
 
 	return 3.141592653589793238 / (math.sin(3.141592653589793238 * n) * F_Gamma(1 - n))
 end
------------
 
---// Start of EternityNum
-----------------------------------------------------------------------------------------------------------------
-export type EN = { Sign: number, Layer: number, Exp: number }
-type BN = { Mantissa: number, Exp: number }
-local EN = {}
------------
-
+--# Start of EternityNum
 function Cnew(Sign: number, Layer: number, Exp: number): EN
 	return { Sign = Sign, Layer = Layer, Exp = Exp }
 end
 
-local ZERO: EN = Cnew(0, 0, 0)
-local ONE: EN = Cnew(1, 0, 1)
-local NaN: EN = Cnew(1, -1, 1)
-local Inf: EN = Cnew(1, math.huge, 1)
+export type EN = { Sign: number, Layer: number, Exp: number }
+type BN = { Mantissa: number, Exp: number }
+local EN = {
+	ZERO = Cnew(0, 0, 0),
+	ONE = Cnew(1, 0, 1),
+	NaN = Cnew(1, -1, 1),
+	Inf = Cnew(1, math.huge, 1),
+}
+
+local ZERO = EN.ZERO
+local ONE = EN.ONE
+local NaN = EN.NaN
+local Inf = EN.Inf
 
 --local DefaultReturn = ZERO
 
@@ -149,7 +153,7 @@ function EN.IsZero(Value: EN): boolean
 	return Value.Sign == 0 or (Value.Exp == 0 and Value.Layer == 0)
 end
 
-function EN.correct(EtNum: EN): EN --// Corrects a EtNum
+function EN.correct(EtNum: EN): EN --# Corrects a EtNum
 	if EN.IsNaN(EtNum) then return NaN end
 	if EN.IsInf(EtNum) then return Inf end
 	if EN.IsZero(EtNum) then return ZERO end
@@ -204,7 +208,7 @@ function EN.new(Sign: number, Layer: number, Exp: number): EN
 	return EN.correct({ Sign = Sign, Layer = Layer, Exp = Exp })
 end
 
-function EN.fromNumber(Value: number): EN --// Convert a number to EtNum
+function EN.fromNumber(Value: number): EN --# Convert a number to EtNum
 	local num = {}
 	num.Sign = math.sign(Value)
 	num.Layer = 0
@@ -212,23 +216,22 @@ function EN.fromNumber(Value: number): EN --// Convert a number to EtNum
 	return EN.correct(num)
 end
 
-function EN.fromScientific(Value: string): EN --// Convert from "XeY" to EtNum
+function EN.fromScientific(Value: string): EN --# Convert from "XeY" to EtNum
 	local slice = Value:split("e")
 
 	local Mantissa = tonumber(slice[1])
 	local Exp = tonumber(slice[2])
 	local Sign = math.sign(Mantissa)
 
-	--// Normalise Mantissa \\--
+	--# Normalise Mantissa #--
 	local Overflow = math.floor(math.log10(Mantissa))
 	if Overflow > 0 then
 		Mantissa /= 10 ^ Overflow
 		Exp += Overflow
 	end
-	-----------------------------
 
-	if Exp == 0 then return EN.new(math.sign(Mantissa), 0, Mantissa) end --// x*10^0 (so just return x)
-	if Mantissa == 0 then return ZERO end --// return 0
+	if Exp == 0 then return EN.new(math.sign(Mantissa), 0, Mantissa) end -- x*10^0 (so just return x)
+	if Mantissa == 0 then return ZERO end -- return 0
 
 	if Mantissa < 0 then Mantissa = -Mantissa end
 
@@ -249,7 +252,7 @@ function EN.fromScientific(Value: string): EN --// Convert from "XeY" to EtNum
 	return EN.new(Sign, Layers, Exp2)
 end
 
-function EN.fromDefaultStringFormat(Value: string): EN --// Convert "X;Y" to EtNum
+function EN.fromDefaultStringFormat(Value: string): EN --# Convert "X;Y" to EtNum
 	local slice = Value:split(";")
 	local Sign = math.sign(tonumber(slice[1]) or 1)
 	if Sign == 0 then Sign = 1 end
@@ -282,7 +285,7 @@ function EN.toString(Value: EN): string
 	return Value.Layer .. ";" .. Value.Exp * Value.Sign
 end
 
-function EN.convert(Input): EN? --// Convert any valid type to EternityNum
+function EN.convert(Input: any): EN? --# Convert any valid type to EternityNum
 	if typeof(Input) == "number" then
 		return EN.fromNumber(Input)
 	elseif typeof(Input) == "string" then
@@ -302,7 +305,7 @@ function EN.convert(Input): EN? --// Convert any valid type to EternityNum
 	--return DefaultReturn
 end
 
-function EN.toNumber(Value: EN): number --// Convert a EtNum to an number
+function EN.toNumber(Value: EN): number --# Convert a EtNum to an number
 	if Value.Layer > 1 then
 		if math.sign(Value.Exp) == -1 then return Value.Sign * 0 end
 		return Value.Sign * 1.8e308
@@ -331,7 +334,7 @@ function EN.maxAbs(Value, Value2)
 	return Value
 end
 
-function EN.neg(Value): EN --// Negate a EtNum
+function EN.neg(Value): EN --# Negate a EtNum
 	Value = EN.convert(Value)
 	return EN.new(-Value.Sign, Value.Layer, Value.Exp)
 end
@@ -365,31 +368,31 @@ function EN.cmp(Value: EN, Value2: EN): number
 	return Value.Sign * EN.cmpAbs(Value, Value2)
 end
 
-function EN.le(Value, Value2): boolean --// <
+function EN.le(Value, Value2): boolean --# <
 	Value = EN.convert(Value)
 	Value2 = EN.convert(Value2)
 	return EN.cmp(Value, Value2) == -1
 end
 
-function EN.me(Value, Value2): boolean --// >
+function EN.me(Value, Value2): boolean --# >
 	Value = EN.convert(Value)
 	Value2 = EN.convert(Value2)
 	return EN.cmp(Value, Value2) == 1
 end
 
-function EN.eq(Value, Value2): boolean --// ==
+function EN.eq(Value, Value2): boolean --# ==
 	Value = EN.convert(Value)
 	Value2 = EN.convert(Value2)
 	return EN.cmp(Value, Value2) == 0
 end
 
-function EN.leeq(Value, Value2): boolean --// <=
+function EN.leeq(Value, Value2): boolean --# <=
 	Value = EN.convert(Value)
 	Value2 = EN.convert(Value2)
 	return not (EN.cmp(Value, Value2) == 1)
 end
 
-function EN.meeq(Value, Value2): boolean --// >=
+function EN.meeq(Value, Value2): boolean --# >=
 	Value = EN.convert(Value)
 	Value2 = EN.convert(Value2)
 	return not (EN.cmp(Value, Value2) == -1)
@@ -419,7 +422,7 @@ function baseLog(Value, Base): EN
 	return EN.div(EN.log10(Value), EN.log10(Base))
 end
 
-function EN.log(Value, Base): EN --// Log of x
+function EN.log(Value, Base): EN --# Log of x
 	if Base then return baseLog(Value, Base) end
 
 	Value = EN.convert(Value)
@@ -427,20 +430,21 @@ function EN.log(Value, Base): EN --// Log of x
 	if Value.Sign <= 0 then return NaN end
 
 	if Value.Layer == 0 then
-		return EN.new(Value.Sign, 0, math.log(Value.Exp))
+		--# log(10^x) = x*log(10)
+		return EN.new(Value.Sign, 0, math.log10(Value.Exp) * 2.302585092994046)
 	elseif Value.Layer == 1 then
-		--// so we have this for x*10^y, since log(x) = log10(x) * log(10) we can do exactly that!
+		--# so we have this for x*10^y, since log(x) = log10(x) * log(10) we can do exactly that!
 		return EN.new(math.sign(Value.Exp), 0, math.abs(Value.Exp) * 2.302585092994046)
 	elseif Value.Layer == 2 then
-		--// 10^(x*10^y), turns out you can just take the log10 and then add log10(log(10)) to the exponent
+		--# 10^(x*10^y), turns out you can just take the log10 and then add log10(log(10)) to the exponent
 		return EN.new(math.sign(Value.Exp), 1, math.abs(Value.Exp) + 0.36221568869946325)
 	end
-	--// log(x) ~ log10(x) at this point so we just return the log10
+	--# log(x) ~ log10(x) at this point so we just return the log10
 
 	return EN.new(math.sign(Value.Exp), Value.Layer - 1, math.abs(Value.Exp))
 end
 
-function EN.log10(Value): EN --// log10(x)
+function EN.log10(Value): EN --# log10(x)
 	Value = EN.convert(Value)
 
 	if Value.Sign <= 0 then return NaN end
@@ -450,7 +454,7 @@ function EN.log10(Value): EN --// log10(x)
 	return EN.new(Value.Sign, 0, math.log10(Value.Exp))
 end
 
-function EN.exp(Value): EN --// e^x
+function EN.exp(Value): EN --# e^x
 	Value = EN.convert(Value)
 
 	if Value.Layer == 0 and Value.Exp <= 709.7 then
@@ -486,6 +490,17 @@ function EN.add(Value, Value2): EN
 	end
 
 	if a.Layer == 0 and b.Layer == 0 then return EN.fromNumber(a.Sign * a.Exp + b.Sign * b.Exp) end
+
+	--[[
+		If a or b have Layer more or equal than one and it has negative Exp while the other one doesn't
+		then it would use the value with bigger layer.
+	]]
+	if (a.Layer > 0 and math.sign(a.Exp) == -1) and math.sign(b.Exp) == 1 then
+		return b
+	end
+	if (b.Layer > 0 and math.sign(b.Exp) == -1) and math.sign(a.Exp) == 1 then
+		return a
+	end
 
 	local layera = a.Layer * math.sign(a.Exp)
 	local layerb = b.Layer * math.sign(b.Exp)
@@ -640,116 +655,22 @@ function EN.pow(Value, Value2): EN
 	return calc
 end
 
---------------------------------------------------------------------------------------
-
 local Sets = { "k", "M", "B" }
 local FirstOnes = { "", "U", "D", "T", "Qd", "Qn", "Sx", "Sp", "Oc", "No" }
 local SecondOnes = { "", "De", "Vt", "Tg", "qg", "Qg", "sg", "Sg", "Og", "Ng" }
 local ThirdOnes = { "", "Ce", "Du", "Tr", "Qa", "Qi", "Se", "Si", "Ot", "Ni" }
+-- stylua: ignore
 local MultOnes = {
-	"",
-	"Mi",
-	"Mc",
-	"Na",
-	"Pi",
-	"Fm",
-	"At",
-	"Zp",
-	"Yc",
-	"Xo",
-	"Ve",
-	"Me",
-	"Due",
-	"Tre",
-	"Te",
-	"Pt",
-	"He",
-	"Hp",
-	"Oct",
-	"En",
-	"Ic",
-	"Mei",
-	"Dui",
-	"Tri",
-	"Teti",
-	"Pti",
-	"Hei",
-	"Hp",
-	"Oci",
-	"Eni",
-	"Tra",
-	"TeC",
-	"MTc",
-	"DTc",
-	"TrTc",
-	"TeTc",
-	"PeTc",
-	"HTc",
-	"HpT",
-	"OcT",
-	"EnT",
-	"TetC",
-	"MTetc",
-	"DTetc",
-	"TrTetc",
-	"TeTetc",
-	"PeTetc",
-	"HTetc",
-	"HpTetc",
-	"OcTetc",
-	"EnTetc",
-	"PcT",
-	"MPcT",
-	"DPcT",
-	"TPCt",
-	"TePCt",
-	"PePCt",
-	"HePCt",
-	"HpPct",
-	"OcPct",
-	"EnPct",
-	"HCt",
-	"MHcT",
-	"DHcT",
-	"THCt",
-	"TeHCt",
-	"PeHCt",
-	"HeHCt",
-	"HpHct",
-	"OcHct",
-	"EnHct",
-	"HpCt",
-	"MHpcT",
-	"DHpcT",
-	"THpCt",
-	"TeHpCt",
-	"PeHpCt",
-	"HeHpCt",
-	"HpHpct",
-	"OcHpct",
-	"EnHpct",
-	"OCt",
-	"MOcT",
-	"DOcT",
-	"TOCt",
-	"TeOCt",
-	"PeOCt",
-	"HeOCt",
-	"HpOct",
-	"OcOct",
-	"EnOct",
-	"Ent",
-	"MEnT",
-	"DEnT",
-	"TEnt",
-	"TeEnt",
-	"PeEnt",
-	"HeEnt",
-	"HpEnt",
-	"OcEnt",
-	"EnEnt",
-	"Hect",
-	"MeHect",
+	"", "Mi", "Mc", "Na", "Pi", "Fm", "At", "Zp", "Yc", "Xo", "Ve", "Me", 
+	"Due", "Tre", "Te", "Pt", "He", "Hp", "Oct", "En", "Ic", "Mei", 
+	"Dui", "Tri", "Teti", "Pti", "Hei", "Hp", "Oci", "Eni", "Tra", "TeC",
+	"MTc", "DTc", "TrTc", "TeTc", "PeTc", "HTc", "HpT", "OcT", "EnT", "TetC", "MTetc",
+	"DTetc", "TrTetc", "TeTetc", "PeTetc", "HTetc", "HpTetc", "OcTetc", "EnTetc", "PcT",
+	"MPcT", "DPcT", "TPCt", "TePCt", "PePCt", "HePCt", "HpPct", "OcPct", "EnPct", "HCt",
+	"MHcT", "DHcT", "THCt", "TeHCt", "PeHCt", "HeHCt", "HpHct", "OcHct", "EnHct", "HpCt",
+	"MHpcT", "DHpcT", "THpCt", "TeHpCt", "PeHpCt", "HeHpCt", "HpHpct", "OcHpct", "EnHpct",
+	"OCt", "MOcT", "DOcT", "TOCt", "TeOCt", "PeOCt", "HeOCt", "HpOct", "OcOct", "EnOct", "Ent", "MEnT",
+	"DEnT", "TEnt", "TeEnt", "PeEnt", "HeEnt", "HpEnt", "OcEnt", "EnEnt", "Hect", "MeHect"
 }
 
 function CutDigits(Value, Digits)
@@ -1064,5 +985,50 @@ function EN.shift(Value, digits)
 	Value.Exp = math.floor(Value.Exp) + math.log10(d)
 	return Value
 end
+
+-- ADDED BY bdidk235:
+function EN.floor(Value: EN): EN
+	if Value.Layer == 0 then Value.Exp = math.floor(Value.Exp) end
+	return Value
+end
+
+function EN.round(Value: EN): EN
+	if Value.Layer == 0 then Value.Exp = math.round(Value.Exp) end
+	return Value
+end
+
+function EN.ceil(Value: EN): EN
+	if Value.Layer == 0 then Value.Exp = math.ceil(Value.Exp) end
+	return Value
+end
+
+function EN.min(Value1, ...): EN
+	local Args = { ... }
+	local Result = EN.convert(Value1)
+	for i = 1, #Args do
+		local Arg = EN.convert(Args[i])
+		if EN.le(Arg, Result) then Result = Arg end
+	end
+	return Result
+end
+
+function EN.max(Value1: EN, ...: EN): EN
+	local Args = { ... }
+	local Result = EN.convert(Value1)
+	for i = 1, #Args do
+		local Arg = EN.convert(Args[i])
+		if EN.me(Arg, Result) then Result = Arg end
+	end
+	return Result
+end
+
+function EN.clamp(Value, Min, Max): EN
+	Value = EN.convert(Value)
+	Min = EN.convert(Min)
+	Max = EN.convert(Max)
+
+	return EN.min(EN.max(Value, Min), Max)
+end
+-- END OF ADDED BY bdidk235
 
 return EN
