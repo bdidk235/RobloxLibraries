@@ -1,6 +1,6 @@
 -- Original Asset: https://create.roblox.com/marketplace/asset/12144172446/EternityNum-2
--- Made by FoundForces - CommanderSalty#2800
--- Modified by bdidk235
+-- Made by @FoundForces
+-- Modified by @bdidk235
 
 --!optimize 2
 --!native
@@ -16,7 +16,7 @@ local DefaultDigits = 2 -- Amount of digits on short functions (-1 is all digits
 
 --[[
 EN: A valid EternityNum Table
-val: Any valid input that can be converted to a EternityNum Table
+val: Any valid input that can be converted to an EternityNum Table
 
 FUNCTIONS:
 --# CHECK
@@ -25,7 +25,7 @@ FUNCTIONS:
 	EN.IsZero(EN): boolean -> returns if the given value is 0 or not
 
 --# CONVERT
-	EN.new(Sign, Layer, Exp): EN -> Directy create an new EternityNum Table :->: Sign * (10^^Layer)^Exp
+	EN.new(Sign, Layer, Exp): EN -> Directy create a new EternityNum Table :->: Sign * (10^^Layer)^Exp
 	EN.fromNumber(number): EN -> Converts a number into an EternityNum Table
 	EN.fromString(string): EN -> Converts a string into an EternityNum Table
 	EN.fromScientific(string): EN -> Converts "XeY" into an EternityNum Table
@@ -219,8 +219,8 @@ end
 function EN.fromScientific(Value: string): EN --# Convert from "XeY" to EtNum
 	local slice = Value:split("e")
 
-	local Mantissa = tonumber(slice[1])
-	local Exp = tonumber(slice[2])
+	local Mantissa = tonumber(slice[1]) or 1
+	local Exp = tonumber(slice[2]) or 0
 	local Sign = math.sign(Mantissa)
 
 	--# Normalise Mantissa #--
@@ -256,7 +256,7 @@ function EN.fromDefaultStringFormat(Value: string): EN --# Convert "X;Y" to EtNu
 	local slice = Value:split(";")
 	local Sign = math.sign(tonumber(slice[1]) or 1)
 	if Sign == 0 then Sign = 1 end
-	local Layers = math.abs(tonumber(slice[1]) or 1)
+	local Layers = math.abs(tonumber(slice[1]) or 0)
 	local Exp = tonumber(slice[2])
 	return EN.new(Sign, Layers, Exp)
 end
@@ -273,9 +273,9 @@ function EN.fromString(Value: string): EN?
 	--if Value == "" then return DefaultReturn end
 
 	local num = tonumber(Value)
-	if not num then return nil end
+	if num then return EN.fromNumber(num) end
 
-	return EN.fromNumber(num)
+	return nil
 end
 
 function EN.toString(Value: EN): string
@@ -285,19 +285,22 @@ function EN.toString(Value: EN): string
 	return Value.Layer .. ";" .. Value.Exp * Value.Sign
 end
 
-function EN.convert(Input: any): EN? --# Convert any valid type to EternityNum
+function EN.convert(Input: any) : EN? --// Convert any valid type to EternityNum
 	if typeof(Input) == "number" then
 		return EN.fromNumber(Input)
 	elseif typeof(Input) == "string" then
 		return EN.fromString(Input)
 	elseif typeof(Input) == "table" then
-		if #Input == 2 then -- Its a BigNum (Adding this because if people are updating for "BigNum")
+		if Input.Sign ~= nil and Input.Layer ~= nil and Input.Exp ~= nil then
+			return EN.new(Input.Sign, Input.Layer, Input.Exp)
+		elseif Input.Mantissa and Input.Exp ~= nil then -- Its a based on the unused BN type
+			local String = Input.Mantissa .. "e" .. Input.Exp
+			return EN.fromScientific(String)
+		elseif #Input == 2 then -- Its a BigNum (Adding this because if people are updating for "BigNum")
 			local String = Input[1] .. "e" .. Input[2]
 			return EN.fromScientific(String)
 		elseif #Input == 3 then
 			return EN.new(Input[1], Input[2], Input[3])
-		elseif Input.Sign ~= nil and Input.Layer ~= nil and Input.Exp ~= nil then
-			return EN.new(Input.Sign, Input.Layer, Input.Exp)
 		end
 	end
 	return nil
@@ -491,17 +494,6 @@ function EN.add(Value, Value2): EN
 
 	if a.Layer == 0 and b.Layer == 0 then return EN.fromNumber(a.Sign * a.Exp + b.Sign * b.Exp) end
 
-	--[[
-		If a or b have Layer more or equal than one and it has negative Exp while the other one doesn't
-		then it would use the value with bigger layer.
-	]]
-	if (a.Layer > 0 and math.sign(a.Exp) == -1) and math.sign(b.Exp) == 1 then
-		return b
-	end
-	if (b.Layer > 0 and math.sign(b.Exp) == -1) and math.sign(a.Exp) == 1 then
-		return a
-	end
-
 	local layera = a.Layer * math.sign(a.Exp)
 	local layerb = b.Layer * math.sign(b.Exp)
 
@@ -511,9 +503,9 @@ function EN.add(Value, Value2): EN
 		if math.abs(b.Exp - math.log10(a.Exp)) > msd then
 			return a
 		else
-			local magdif = 10 ^ a.Exp - math.log10(b.Exp)
+			local magdif = 10 ^ (math.log10(a.Exp) - b.Exp)
 			local Mantissa = b.Sign + a.Sign * magdif
-			return EN.new(math.sign(Mantissa), 1, math.log10(b.Exp) + math.log10(math.abs(Mantissa)))
+			return EN.new(math.sign(Mantissa), 1, b.Exp + math.log10(math.abs(Mantissa)))
 		end
 	end
 
@@ -988,17 +980,17 @@ end
 
 -- ADDED BY bdidk235:
 function EN.floor(Value: EN): EN
-	if Value.Layer == 0 then Value.Exp = math.floor(Value.Exp) end
+	if Value.Layer == 0 then return EN.correct({ Sign = Value.Sign, Layer = Value.Layer, Exp = math.floor(Value.Exp) }) end
 	return Value
 end
 
 function EN.round(Value: EN): EN
-	if Value.Layer == 0 then Value.Exp = math.round(Value.Exp) end
+	if Value.Layer == 0 then return EN.correct({ Sign = Value.Sign, Layer = Value.Layer, Exp = math.round(Value.Exp) }) end
 	return Value
 end
 
 function EN.ceil(Value: EN): EN
-	if Value.Layer == 0 then Value.Exp = math.ceil(Value.Exp) end
+	if Value.Layer == 0 then return EN.correct({ Sign = Value.Sign, Layer = Value.Layer, Exp = math.ceil(Value.Exp) }) end
 	return Value
 end
 
@@ -1012,7 +1004,7 @@ function EN.min(Value1, ...): EN
 	return Result
 end
 
-function EN.max(Value1: EN, ...: EN): EN
+function EN.max(Value1, ...): EN
 	local Args = { ... }
 	local Result = EN.convert(Value1)
 	for i = 1, #Args do

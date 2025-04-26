@@ -1,4 +1,12 @@
--- Made by FoundForces - CommanderSalty#2800
+
+
+--[[
+	Creator: @FoundForces
+	Name: EternityNum
+	Description: A library to handle numbers upto 10↑↑2^1024 (https://googology.fandom.com/wiki/Arrow_notation)
+	
+	List of functions below.
+]]
 
 --// Config
 local expl = 1e10 -- exponent limit
@@ -7,7 +15,6 @@ local msd = 100 -- max sig digits
 local AllowOverflow = true -- if this is true functions like to scientific will go to some other short function if input too large
 local SuffixLimit = "9e1E14" -- Value when short() doesnt return suffix anymore
 local DefaultDigits = 2 -- Amount of digits on short functions (-1 is all digits)
---
 
 
 --[[
@@ -76,10 +83,6 @@ FUNCTIONS:
 		returns -1 if val1 < val2
 	EN.cmpAbs(EN1, EN2): number -> returns cmp(abs(EN1),abs(EN2))
 	EN.maxAbs(val1, val2): EN -> returns the max(abs(val1), abs(val2))
-	
--- TO ADD:
-	EN.min(val1, val2)
-	EN.max(val1m val2)
 ]]
 
 -----------
@@ -284,8 +287,9 @@ end
 
 function EN.fromDefaultStringFormat(Value: string) : EN --// Convert "X;Y" to EtNum
 	local slice = Value:split(";")
-	local Sign = math.sign(tonumber(slice[1]) or 1)
-	local Layers = math.abs(tonumber(slice[1]) or 1)
+	local Sign = math.sign(tonumber(slice[1]))
+	if Sign == 0 then Sign = 1 end 
+	local Layers = math.abs(tonumber(slice[1]))
 	local Exp = tonumber(slice[2])
 	return EN.correct(EN.new(Sign, Layers, Exp))
 end
@@ -302,7 +306,7 @@ function EN.fromString(Value: string)
 	if Value == "Inf" then return Inf end
 	if Value == "" then return DefaultReturn end
 
-	return EN.fromNumber(tonumber(Value) or 1)
+	return EN.fromNumber(tonumber(Value))
 end
 
 function EN.toString(Value: EN) : string
@@ -469,7 +473,8 @@ function EN.log(Value, Base) : EN --// Log of x
 	if Value.Sign <= 0 then return NaN end
 
 	if Value.Layer == 0 then
-		return EN.new(Value.Sign, 0, math.log10(Value.Exp))
+		-- log(10^x) = x*log(10)
+		return EN.new(Value.Sign, 0, math.log10(Value.Exp) * 2.302585092994046)
 	elseif Value.Layer == 1 then
 		--// so we have this for x*10^y, since log(x) = log10(x) * log(10) we can do exactly that!
 		return EN.new(math.sign(Value.Exp), 0, math.abs(Value.Exp) * 2.302585092994046)
@@ -547,9 +552,9 @@ function EN.add(Value, Value2) : EN
 		if math.abs(b.Exp - math.log10(a.Exp)) > msd then
 			return a
 		else
-			local magdif = 10 ^ a.Exp - math.log10(b.Exp)
+			local magdif = 10 ^ (math.log10(a.Exp) - b.Exp)
 			local Mantissa = b.Sign + a.Sign * magdif
-			return EN.new(math.sign(Mantissa), 1, math.log10(b.Exp) + math.log10(math.abs(Mantissa)))
+			return EN.new(math.sign(Mantissa), 1, b.Exp + math.log10(math.abs(Mantissa)))
 		end
 	end
 	
